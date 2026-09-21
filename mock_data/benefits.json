@@ -1,0 +1,20 @@
+[
+  {
+    "employee_id": "QNA-1001",
+    "medical_plan": "QuantNova Standard PPO",
+    "dental_plan": "QuantNova Dental Plus",
+    "vision_plan": "QuantNova Vision",
+    "retirement_enrollment": true,
+    "status": "Active",
+    "as_of_date": "2026-09-20"
+  },
+  {
+    "employee_id": "QNA-1002",
+    "medical_plan": null,
+    "dental_plan": null,
+    "vision_plan": null,
+    "retirement_enrollment": false,
+    "status": "Not Eligible - Temporary Classification",
+    "as_of_date": "2026-09-20"
+  }
+]

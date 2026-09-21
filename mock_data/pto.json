@@ -1,0 +1,16 @@
+[
+  {
+    "employee_id": "QNA-1001",
+    "pto_type": "Vacation",
+    "available_hours": 96,
+    "accrual_rate_hours": 8,
+    "as_of_date": "2026-09-20"
+  },
+  {
+    "employee_id": "QNA-1002",
+    "pto_type": "Vacation",
+    "available_hours": 0,
+    "accrual_rate_hours": 0,
+    "as_of_date": "2026-09-20"
+  }
+]

@@ -1,0 +1,50 @@
+[
+  {
+    "employee_id": "QNA-1001",
+    "first_name": "Maya",
+    "last_name": "Chen",
+    "department": "AI Platform",
+    "job_title": "Software Engineer",
+    "employment_type": "Regular Full-Time",
+    "location": "California",
+    "hire_date": "2023-04-17",
+    "manager_id": "QNA-1008",
+    "employment_status": "Active"
+  },
+  {
+    "employee_id": "QNA-1002",
+    "first_name": "Jordan",
+    "last_name": "Lee",
+    "department": "Product Operations",
+    "job_title": "Program Coordinator",
+    "employment_type": "Temporary",
+    "location": "California",
+    "hire_date": "2026-06-01",
+    "manager_id": "QNA-1010",
+    "employment_status": "Active"
+  },
+  {
+    "employee_id": "QNA-1008",
+    "first_name": "Priya",
+    "last_name": "Nair",
+    "department": "AI Platform",
+    "job_title": "Engineering Manager",
+    "employment_type": "Regular Full-Time",
+    "location": "California",
+    "hire_date": "2021-02-08",
+    "manager_id": null,
+    "employment_status": "Active"
+  },
+  {
+    "employee_id": "QNA-1010",
+    "first_name": "Evan",
+    "last_name": "Brooks",
+    "department": "Product Operations",
+    "job_title": "Director, Product Operations",
+    "employment_type": "Regular Full-Time",
+    "location": "California",
+    "hire_date": "2020-09-14",
+    "manager_id": null,
+    "employment_status": "Active"
+  }
+]
