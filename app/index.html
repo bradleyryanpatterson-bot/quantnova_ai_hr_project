@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QuantNova AI · HR Assistant</title>
+<style>
+:root{font-family:Segoe UI,system-ui,sans-serif;color:#152b3c;background:#f3f6fa}*{box-sizing:border-box}body{margin:0}header{background:#102d40;color:white;padding:26px max(24px,calc((100vw - 1120px)/2));display:flex;justify-content:space-between;align-items:center;gap:20px}header strong{font-size:22px;letter-spacing:-.5px}header span{font-size:13px;color:#c5e5e5}main{max-width:1120px;margin:30px auto;padding:0 20px;display:grid;grid-template-columns:280px 1fr;gap:24px}aside,.chat{background:white;border:1px solid #dbe3eb;border-radius:16px;padding:24px}h1{font-size:28px;margin:0 0 10px;letter-spacing:-.7px}h2{font-size:15px;margin:24px 0 12px}p{line-height:1.6}.muted{color:#5c6e7e;font-size:13px}label{display:block;font-size:13px;font-weight:600;margin-bottom:8px}select,textarea{width:100%;font:inherit;padding:12px;border:1px solid #aab9c8;border-radius:9px;background:white;color:#152b3c}select{font-size:13px}button{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:11px 15px;background:#087b77;color:white}button:hover{filter:brightness(.93)}button:disabled{opacity:.55;cursor:wait}.example{display:block;text-align:left;background:#edf5f5;color:#174c52;width:100%;margin:9px 0;font-size:13px;line-height:1.5}.tag{font-size:11px;color:#08756f;font-weight:700;text-transform:uppercase;letter-spacing:1px}.message{border-top:1px solid #e3e9ef;padding:20px 0;line-height:1.65;font-size:14px;overflow-wrap:anywhere}.message .body{white-space:pre-wrap}.role{font-size:11px;font-weight:700;color:#65798a;text-transform:uppercase;margin-bottom:8px}.user{background:#f0f6fa;padding:16px;border-radius:10px;margin:14px 0}.sources{display:grid;gap:8px;margin-top:15px}details{background:#f5f8fb;border-radius:8px;padding:10px;font-size:12px}summary{cursor:pointer;font-weight:600}details p{white-space:pre-wrap}a{color:#076d86}textarea{resize:vertical;min-height:90px}form{border-top:1px solid #dbe3eb;padding-top:20px}.actions{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-top:10px}#status{font-size:12px}#messages:empty{min-height:100px}#error{color:#a02b24;font-size:13px}footer{max-width:1120px;margin:0 auto 24px;padding:0 20px;color:#667786;font-size:12px}@media(max-width:750px){main{grid-template-columns:1fr;margin:18px auto}aside{padding:18px}.chat{padding:20px}header{padding:20px}header span{max-width:130px}.examples{display:flex;gap:8px;flex-wrap:wrap}.example{width:auto;flex:1;min-width:150px}}
+</style>
+</head>
+<body>
+<header><strong>QuantNova AI</strong><span>People Operations · Local demo</span></header>
+<main>
+<aside>
+<div class="tag">Your workspace</div>
+<h2>Demo employee</h2>
+<label for="employee">Ask as</label><select id="employee"><option value="">General policy question</option></select>
+<p class="muted">All identities and records are fictional. Selecting a demo identity is not authentication.</p>
+<h2>Try a question</h2>
+<div class="examples">
+<button class="example" data-question="Can I take five vacation days, and what would my balance be afterward?">Estimate five vacation days →</button>
+<button class="example" data-question="What benefits am I enrolled in and am I eligible?">Check my benefits →</button>
+<button class="example" data-question="How do I raise a workplace concern?">Raise a workplace concern →</button>
+</div>
+<h2>How this demo works</h2><p class="muted">Answers use local policy passages and synthetic employee records. No language model or external service is connected. Each question is handled independently.</p>
+<p class="muted">Records are dated snapshots. This demo cannot approve leave, submit requests, or change benefits.</p>
+<a href="/docs" class="muted">API documentation</a>
+</aside>
+<section class="chat">
+<div class="tag">HR assistant</div><h1>How can we help?</h1>
+<p class="muted">Explore your benefits, plan time off, or find a company policy. Answers include the evidence used.</p>
+<div id="messages" aria-live="polite"></div>
+<form id="form"><label for="question">Your question</label><textarea id="question" maxlength="4000" placeholder="Ask about vacation, benefits, or a company policy…" required></textarea>
+<div class="actions"><span id="status" role="status">Checking local data…</span><button id="send" type="submit">Ask assistant</button></div><p id="error" role="alert"></p></form>
+</section></main><footer>QuantNova AI · Fictional HR demonstration · For unresolved questions, contact People Operations.</footer>
+<script>
+const $=id=>document.getElementById(id);
+function el(tag,text,cls){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
+function message(role,text){const card=el('div',undefined,'message '+(role==='You'?'user':''));card.append(el('div',role,'role'),el('div',text,'body'));$('messages').append(card);return card;}
+async function initialize(){try{const [h,e]=await Promise.all([fetch('/health'),fetch('/employees')]);if(!h.ok||!e.ok)throw Error('Local data is unavailable. Check the server terminal.');const health=await h.json();for(const person of await e.json()){const option=el('option',person.name+' · '+person.employee_id);option.value=person.employee_id;$('employee').append(option);}$('employee').value='QNA-1001';$('status').textContent='Ready · '+health.policy_sections+' policy sections';}catch(error){$('status').textContent='Unavailable';$('error').textContent=error.message;}}
+$('form').addEventListener('submit',async event=>{event.preventDefault();if($('send').disabled)return;const question=$('question').value.trim();if(!question)return;const identity=$('employee').value;message('You',question);$('send').disabled=true;$('employee').disabled=true;$('error').textContent='';$('status').textContent='Checking records and policies…';try{const response=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question,employee_id:identity||null})});const data=await response.json();if(!response.ok)throw Error(typeof data.detail==='string'?data.detail:'The request failed. Please try again.');const card=message('Assistant',data.answer);if(data.citations?.length){const sources=el('div',undefined,'sources');for(const source of data.citations){const details=el('details');details.append(el('summary',source.policy_id+' · '+source.section+' · v'+source.version),el('p',source.snippet));const link=el('a','Read full policy');link.href='/policies/'+encodeURIComponent(source.filename);link.target='_blank';link.rel='noopener';details.append(link);sources.append(details);}card.append(sources);}if(data.trace?.length){const details=el('details');details.append(el('summary','Tools used'),el('p',data.trace.map(t=>t.tool+' · '+t.status).join('\n')));card.append(details);}$('question').value='';$('status').textContent='Ready · local mode';card.scrollIntoView({behavior:'smooth',block:'start'});}catch(error){$('error').textContent=error.message+' Your question is still in the box so you can retry.';$('status').textContent='Request failed';}finally{$('send').disabled=false;$('employee').disabled=false;}});
+document.querySelectorAll('[data-question]').forEach(button=>button.addEventListener('click',()=>{$('question').value=button.dataset.question;$('question').focus();}));
+initialize();
+</script>
+</body></html>

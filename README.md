@@ -1,41 +1,58 @@
-# QuantNova AI HR Assistant - V2
+# QuantNova AI HR Assistant
 
-QuantNova AI HR Assistant is a fictional employee-support application for policy Q&A and guided HR workflows. All employee records, balances, benefit records, tickets, policy identifiers, and organizational details in this repository are synthetic and belong only to the fictional company QuantNova AI.
+A working local HR demo with a browser chat page, policy citations, vacation calculations, and synthetic employee benefit lookups. All employees, policies, and records are fictional.
 
-## V2 baseline
-- Responsive chat UI plus JSON `/chat` and `/health` endpoints.
-- LangChain-oriented agent orchestration with explicit tool routing.
-- MCP client/server boundary with at least five HR tools.
-- PostgreSQL + pgvector for policy chunks, metadata, and synthetic HR data.
-- Policy RAG with traceable citations and source snippets.
-- PTO Guidance and Benefits Guidance multi-step workflows.
-- Optional external web search through Tavily with DuckDuckGo fallback; external results are never treated as QuantNova AI policy.
-- Short operational trace containing tool names, safe arguments, results, and sources; no hidden model reasoning.
-- CI tests for application startup, policy retrieval, and MCP discovery/calls.
+## Run on Windows
 
-## Core architecture
-User -> Web/API -> LangChain Agent -> MCP Client -> MCP Server -> PostgreSQL/pgvector -> QuantNova AI policy + synthetic HR records -> grounded answer/citations.
+From this project folder, run:
 
-## Quick start
-1. Create a virtual environment and install `requirements.txt`.
-2. Copy `.env.example` to `.env` and fill in provider/database credentials.
-3. Start PostgreSQL with pgvector and run `python -m db.init_db`.
-4. Run `python -m rag.ingest` to index QuantNova AI policies.
-5. Start the app with `uvicorn app.main:app --reload`.
-6. Open `http://localhost:8000`.
+```powershell
+.\start-local.cmd
+```
 
-## Demo identities
-Use only synthetic QuantNova AI employee IDs such as `QNA-1001` and `QNA-1002`.
+Or double-click `start-local.cmd`. The launcher creates `.venv` if needed, installs the minimal runtime when missing, and starts the server on port 8080. Python 3.10 or newer must be installed and available through `py` for first-time setup.
 
-## Demo workflow 1 - PTO
-"I'm QNA-1001. Can I take five vacation days next month, and what would my balance be afterward?"
+Open http://127.0.0.1:8080/ for the chat page. Keep the terminal open; press Ctrl+C to stop.
 
-Expected tool sequence: employee profile -> PTO balance -> policy search/section -> calculation -> cited guidance. Any request submission remains a mock action and requires explicit confirmation.
+If port 8080 is occupied, either use the already-running app or run `start-local.cmd 8081` and open http://127.0.0.1:8081/. The launcher binds only to this machine. Port 8000 produced Windows error 10013 on the development machine, so 8080 is the default.
 
-## Demo workflow 2 - Benefits
-"I'm QNA-1002, a temporary employee. What benefits am I currently enrolled in, and what does QuantNova AI policy say about eligibility?"
+## Manual setup
 
-Expected tool sequence: employee profile -> benefits status -> employment-classification policy -> benefits policy -> cited guidance or HR referral if evidence is insufficient.
+```powershell
+py -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-local.txt
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8080
+```
 
-## Safety
-The model is not the authority for QuantNova AI HR facts. Policy documents and approved MCP tool results are the authoritative evidence for this demo. Missing, conflicting, or unavailable evidence must be surfaced rather than invented.
+No environment activation, database, API key, or model download is required for local mode. On macOS/Linux, use `python3 -m venv .venv` and `.venv/bin/python` in the commands above.
+
+## What works
+
+- Browser chat with demo employee selection, expandable citations, full policy links, and tool traces.
+- Section-based keyword search across eight Markdown policies (50 sections).
+- Vacation balance estimates from the checked-in PTO records, with eight-hour workdays and explicit manager approval guidance.
+- Benefit enrollment from the checked-in records, separate from policy eligibility.
+- Missing-record handling, employee-ID mismatch detection, and input validation.
+- `/health` checks that policy and employee data can be loaded. `/docs` provides interactive API documentation.
+- The optional MCP server shares the same five functional read tools: install `mcp` and run `python -m hr_mcp.server` to expose them over stdio. The web app calls these handlers in process; it does not launch an MCP connection.
+
+## Try it
+
+Select Maya Chen (QNA-1001): “Can I take five vacation days, and what would my balance be afterward?” The recorded 96 hours minus 40 hours gives an estimated 56 hours remaining.
+
+Select Jordan Lee (QNA-1002): “What benefits am I enrolled in and am I eligible?” The response shows the temporary classification, recorded enrollment, and relevant policy.
+
+Choose General policy question: “How do I raise a workplace concern?”
+
+## Current boundaries
+
+This mode uses deterministic workflows and retrieved policy excerpts, not a generative language model. Each question is independent, with no conversation memory. Record dates are shown because the data is a fixed snapshot. Demo identity selection is not authentication; use only the supplied fictional data and keep the server local.
+
+The web app does not submit tickets, approve leave, or change records. The optional MCP ticket tool only returns a mock acknowledgement after confirmation; it does not persist a ticket. PostgreSQL, pgvector, LangChain orchestration, external search, and model-provider integration remain future work. The legacy `db.init_db` and `rag.ingest` commands are scaffold utilities and are not required for local startup. The original `requirements.txt` retains those broader integration dependencies; use `requirements-local.txt` for this app.
+
+## Tests
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-local.txt
+.\.venv\Scripts\python.exe -m pytest -q
+```
