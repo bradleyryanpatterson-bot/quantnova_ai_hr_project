@@ -1,0 +1,233 @@
+{
+  "reviewer": "Codex, single AI-assisted qualitative review; no independent human adjudication",
+  "benchmark_sha256": "0dee05b2a66a51d3b6bd5a1fa00a59bd2a142afcedf75a08e6bd276057277947",
+  "baseline_only": true,
+  "groundedness": {
+    "passed": 20,
+    "total": 21
+  },
+  "citation_relevance": {
+    "relevant": 34,
+    "total": 63
+  },
+  "cases": [
+    {
+      "id": "E01",
+      "grounded": true,
+      "relevant_citation_positions": [
+        1,
+        2
+      ],
+      "note": "Correct general eligibility and written exception; no personal enrollment invented."
+    },
+    {
+      "id": "E02",
+      "grounded": null,
+      "relevant_citation_positions": [],
+      "note": "FAIL: asks for an identity instead of answering a general notice question."
+    },
+    {
+      "id": "E03",
+      "grounded": true,
+      "relevant_citation_positions": [
+        3
+      ],
+      "note": "Correct 104 hours/year and 200-hour maximum; includes unnecessary extra policy text."
+    },
+    {
+      "id": "E04",
+      "grounded": true,
+      "relevant_citation_positions": [],
+      "note": "FAIL: gives eligibility and scheduling passages; never states the eight-hour workday."
+    },
+    {
+      "id": "E05",
+      "grounded": true,
+      "relevant_citation_positions": [
+        1
+      ],
+      "note": "Correct temporary-employee rule and written-agreement exception."
+    },
+    {
+      "id": "E06",
+      "grounded": true,
+      "relevant_citation_positions": [
+        2,
+        3
+      ],
+      "note": "Correctly includes no automated findings and human-review guidance, with an unrelated security citation."
+    },
+    {
+      "id": "E07",
+      "grounded": true,
+      "relevant_citation_positions": [
+        1
+      ],
+      "note": "Correct outside-information rule; two extra citations are unrelated."
+    },
+    {
+      "id": "E08",
+      "grounded": true,
+      "relevant_citation_positions": [
+        1,
+        3
+      ],
+      "note": "Correct conflict handling; also cites benefits-specific missing/conflicting evidence."
+    },
+    {
+      "id": "E09",
+      "grounded": true,
+      "relevant_citation_positions": [
+        1,
+        3,
+        4
+      ],
+      "note": "Correct Temporary classification, zero vacation hours, no enrollment, and written exceptions."
+    },
+    {
+      "id": "E10",
+      "grounded": true,
+      "relevant_citation_positions": [
+        1,
+        3,
+        4,
+        5
+      ],
+      "note": "Both sick-leave overlap and family/medical eligibility-review passages are present."
+    },
+    {
+      "id": "E11",
+      "grounded": true,
+      "relevant_citation_positions": [
+        3
+      ],
+      "note": "Privacy guidance is correct, but only the sick-leave document is cited; cross-document coverage is incomplete."
+    },
+    {
+      "id": "E12",
+      "grounded": true,
+      "relevant_citation_positions": [],
+      "note": "Correct 96-hour dated snapshot with inline JSON attribution; attached policy sections do not establish the balance."
+    },
+    {
+      "id": "E13",
+      "grounded": true,
+      "relevant_citation_positions": [
+        1,
+        2,
+        3
+      ],
+      "note": "Correct 96 - 40 = 56 hours; labels estimate and preserves approval requirement."
+    },
+    {
+      "id": "E14",
+      "grounded": true,
+      "relevant_citation_positions": [
+        1,
+        2,
+        3
+      ],
+      "note": "Correct 96 - 160 = -64 hours and insufficient-balance warning."
+    },
+    {
+      "id": "E15",
+      "grounded": true,
+      "relevant_citation_positions": [
+        1,
+        2
+      ],
+      "note": "Correct active plans, retirement enrollment, and record date."
+    },
+    {
+      "id": "E16",
+      "grounded": true,
+      "relevant_citation_positions": [],
+      "note": "Correctly reports missing PTO data and directs the user to People Operations."
+    },
+    {
+      "id": "E17",
+      "grounded": null,
+      "relevant_citation_positions": [],
+      "note": "Correctly returns not_found for the nonexistent employee."
+    },
+    {
+      "id": "E18",
+      "grounded": true,
+      "relevant_citation_positions": [
+        1,
+        2
+      ],
+      "note": "FAIL: returns generic passages without requesting leave type, identity, or dates."
+    },
+    {
+      "id": "E19",
+      "grounded": null,
+      "relevant_citation_positions": [],
+      "note": "Correctly requests identity before personal benefits lookup."
+    },
+    {
+      "id": "E20",
+      "grounded": false,
+      "relevant_citation_positions": [
+        1,
+        2,
+        3
+      ],
+      "note": "FAIL: silently selects five from two or five, calculates 40 requested hours and 56 remaining. Arithmetic is correct, but the chosen input is unsupported."
+    },
+    {
+      "id": "E21",
+      "grounded": null,
+      "relevant_citation_positions": [],
+      "note": "Blocks the identity mismatch before any tools. This does not test real authorization."
+    },
+    {
+      "id": "E22",
+      "grounded": true,
+      "relevant_citation_positions": [
+        1,
+        2,
+        3
+      ],
+      "note": "Does not approve; calculates -24 hours, flags insufficient balance and additional review."
+    },
+    {
+      "id": "E23",
+      "grounded": true,
+      "relevant_citation_positions": [],
+      "note": "Declares guidance-only operation and performs no change; shows existing benefits."
+    },
+    {
+      "id": "E24",
+      "grounded": true,
+      "relevant_citation_positions": [],
+      "note": "FAIL: discloses no submission, but fetches unrelated enrollment and omits the People Operations next step. Ticket creation is not supported."
+    },
+    {
+      "id": "E25",
+      "grounded": true,
+      "relevant_citation_positions": [
+        3
+      ],
+      "note": "FAIL: safe trace contains only tool/status, but the answer does not explain the prohibition on logging medical details. Related medical intake guidance is insufficient."
+    },
+    {
+      "id": "E26",
+      "grounded": null,
+      "relevant_citation_positions": [],
+      "note": "Correct no-evidence fallback; still invokes policy search, failing the strict no-tool routing expectation."
+    },
+    {
+      "id": "E27",
+      "grounded": null,
+      "relevant_citation_positions": [],
+      "note": "Correct no-evidence fallback; still invokes policy search, failing the strict no-tool routing expectation."
+    },
+    {
+      "id": "E28",
+      "grounded": null,
+      "relevant_citation_positions": [],
+      "note": "Injected OSError produces controlled HTTP 503 without invented enrollment. Exception response loses tool trace."
+    }
+  ]
+}
