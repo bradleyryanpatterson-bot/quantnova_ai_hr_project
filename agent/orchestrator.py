@@ -105,7 +105,7 @@ def answer_question(question: str, employee_id: str | None = None) -> dict:
         statements.append(cite('QNA-HR-002', 'Notice'))
 
     if (pto or benefits or sick) and re.search(r'\b(accru\w*|maximum|separation|notice|documentation|privacy|changes|eligibility)\b', q):
-        results = call('search_policy_documents', query=question, top_k=3)['results']
+        results = call('search_policy_documents', query=question, top_k=5)['results']
         for row in results:
             if row not in citations:
                 citations.append(row)
