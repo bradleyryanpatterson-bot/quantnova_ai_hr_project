@@ -1,0 +1,630 @@
+Agentic AI Layer Requirements
+1. Purpose
+The Agentic AI Layer is the core orchestration component responsible for transforming a user's natural-language HR request into a controlled sequence of reasoning, information retrieval, tool calls, policy lookups, data operations, and responses.
+The agentic layer shall be capable of independently determining what information is needed, which tools are appropriate, which MCP servers should be consulted, and what sequence of actions is required, while remaining subject to authorization, security, policy, and human-approval controls.
+The layer shall support both informational and operational HR use cases.
+
+2. Agentic Architecture
+The system shall use an architecture similar to:
+┌────────────────────────────────────────────────────────────┐
+│                         USER                               │
+│       Employee / Manager / HR Specialist / Admin          │
+└───────────────────────────┬────────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────────┐
+│                  CONVERSATIONAL INTERFACE                  │
+│              Natural Language Request / Response           │
+└───────────────────────────┬────────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────────┐
+│                     AGENTIC LAYER                          │
+│                                                            │
+│  ┌───────────────┐     ┌────────────────────────────────┐  │
+│  │ Intent        │────►│ Planning / Task Decomposition  │  │
+│  │ Analysis      │     └───────────────┬────────────────┘  │
+│  └───────────────┘                     │                   │
+│                                        ▼                   │
+│                          ┌──────────────────────────┐      │
+│                          │ Tool Selection / Routing │      │
+│                          └────────────┬─────────────┘      │
+│                                       │                    │
+│                    ┌──────────────────┼───────────────┐    │
+│                    ▼                  ▼               ▼    │
+│              ┌──────────┐      ┌──────────┐    ┌──────────┐
+│              │ MCP      │      │ MCP      │    │ Local    │
+│              │ Server A  │      │ Server B │    │ Tools    │
+│              └────┬─────┘      └────┬─────┘    └────┬─────┘
+│                   │                 │                │
+│                   └─────────────────┼────────────────┘
+│                                     ▼
+│                          ┌────────────────────┐
+│                          │ Result Validation  │
+│                          │ & Grounding        │
+│                          └─────────┬──────────┘
+│                                    │
+│                                    ▼
+│                          ┌────────────────────┐
+│                          │ Citation Generator │
+│                          └─────────┬──────────┘
+└────────────────────────────────────┼───────────────────────┘
+                                     │
+                                     ▼
+                         ┌────────────────────────┐
+                         │ Grounded Final Answer  │
+                         │ + Citations + Actions  │
+                         └────────────────────────┘
+
+3. Agent Planning Requirements
+AG-001 — Intent Identification
+The agent shall identify the intent of a user's request before selecting tools or executing actions.
+Example:
+"How much PTO do I have left?"
+The agent should identify that the request potentially requires:
+Identifying the authenticated employee.
+Retrieving the employee record.
+Retrieving PTO information.
+Determining the applicable PTO balance.
+Returning the result with appropriate grounding.
+
+AG-002 — Task Decomposition
+The agent shall decompose complex requests into discrete tasks.
+Example:
+"Can I take two weeks off in December, and if so, submit the request for me?"
+Possible plan:
+1. Identify employee.
+2. Retrieve employee record.
+3. Retrieve PTO balance.
+4. Retrieve applicable PTO policy.
+5. Determine whether sufficient PTO is available.
+6. Present the result to the employee.
+7. If the employee confirms:
+   a. Create PTO request.
+   b. Determine required approval.
+   c. Submit request.
+   d. Return confirmation.
+
+AG-003 — Dynamic Planning
+The agent shall be capable of modifying its plan based on information returned by tools.
+For example:
+Initial Plan
+    ↓
+Employee lookup
+    ↓
+Employee is part-time
+    ↓
+Plan changes
+    ↓
+Retrieve part-time PTO policy
+    ↓
+Retrieve PTO balance
+    ↓
+Evaluate request
+The agent shall not assume that all workflows follow a fixed sequence.
+
+4. Tool Selection
+AG-010 — Tool Discovery
+The agent shall maintain access to a registry of available tools.
+Each tool definition shall include:
+Tool name
+Description
+Input schema
+Output schema
+Required permissions
+Risk classification
+Read/write classification
+MCP server
+Applicable workflows
+
+AG-011 — Tool Selection
+The agent shall select tools based on:
+User intent
+Required information
+Tool capabilities
+User permissions
+Workflow requirements
+Tool risk
+Data sensitivity
+The agent shall not call tools merely because they are available.
+
+AG-012 — Multiple Tool Calls
+The agent shall support sequential and, where safe, parallel tool calls.
+Example:
+User Request
+     │
+     ├──► Employee MCP Server
+     │
+     ├──► PTO MCP Server
+     │
+     └──► HR Policy MCP Server
+              │
+              ▼
+       Combine Results
+              │
+              ▼
+       Grounded Response
+
+5. Model Context Protocol (MCP) Requirements
+The system shall support integration with one or more Model Context Protocol (MCP) servers.
+MCP servers shall expose controlled HR capabilities to the agent.
+Potential MCP servers include:
+Employee MCP Server
+Example tools:
+get_employee(employee_id)
+get_employee_by_email(email)
+get_employee_manager(employee_id)
+get_employee_status(employee_id)
+PTO MCP Server
+Example tools:
+get_pto_balance(employee_id)
+get_pto_history(employee_id)
+get_pto_policy(employee_id)
+create_pto_request(employee_id, start_date, end_date)
+get_pto_request_status(request_id)
+Benefits MCP Server
+Example tools:
+get_benefit_enrollment(employee_id)
+get_benefit_balance(employee_id)
+get_available_benefits(employee_id)
+get_benefit_policy(benefit_type)
+HR Policy MCP Server
+Example tools:
+search_policy(query)
+get_policy(policy_id)
+get_policy_version(policy_id)
+get_policy_section(policy_id, section)
+HR Case MCP Server
+Example tools:
+create_hr_case()
+get_hr_case()
+update_hr_case()
+assign_hr_case()
+
+6. MCP Server Requirements
+MCP-001
+The system shall be capable of connecting to multiple MCP servers.
+MCP-002
+Each MCP server shall expose machine-readable tool definitions.
+MCP-003
+The agent shall inspect available tools before selecting an appropriate tool.
+MCP-004
+MCP tool inputs shall be validated against their declared schemas.
+MCP-005
+MCP tool outputs shall be validated before being incorporated into an agent response.
+MCP-006
+MCP servers shall enforce their own authorization boundaries.
+MCP-007
+The agent shall not bypass MCP authorization controls.
+MCP-008
+MCP calls shall be logged for audit purposes.
+MCP-009
+The system shall distinguish between read-only and state-changing MCP tools.
+MCP-010
+State-changing MCP tools shall support additional authorization or approval requirements.
+
+7. Mock Structured HR Data
+The initial implementation shall support a mock structured-data environment for development, demonstration, testing, and evaluation.
+The mock environment shall simulate realistic HR data without requiring production employee information.
+7.1 Employee Records
+Example:
+{
+  "employee_id": "EMP-1042",
+  "first_name": "Alex",
+  "last_name": "Morgan",
+  "department": "Engineering",
+  "job_title": "Software Engineer",
+  "employment_type": "Full-Time",
+  "location": "California",
+  "hire_date": "2023-04-17",
+  "manager_id": "EMP-1008",
+  "employment_status": "Active"
+}
+
+7.2 PTO Data
+Example:
+{
+  "employee_id": "EMP-1042",
+  "pto_type": "Vacation",
+  "available_hours": 96,
+  "accrual_rate": 8,
+  "as_of_date": "2026-09-19"
+}
+
+7.3 PTO History
+{
+  "employee_id": "EMP-1042",
+  "requests": [
+    {
+      "request_id": "PTO-20031",
+      "start_date": "2026-07-06",
+      "end_date": "2026-07-10",
+      "hours": 40,
+      "status": "Approved"
+    }
+  ]
+}
+
+7.4 Benefits Data
+Example:
+{
+  "employee_id": "EMP-1042",
+  "medical_plan": "Standard PPO",
+  "dental_plan": "Enhanced Dental",
+  "vision_plan": "Standard Vision",
+  "401k_enrollment": true,
+  "401k_contribution": 6
+}
+
+8. Structured Data Access
+DATA-001
+The agent shall retrieve structured employee data through approved tools rather than relying on information contained in the language model's internal knowledge.
+DATA-002
+The agent shall distinguish between:
+User-provided information
+Retrieved HR data
+Policy information
+AI-generated reasoning
+Assumptions
+DATA-003
+The agent shall not fabricate employee records, balances, policies, or workflow status.
+DATA-004
+If required structured data cannot be retrieved, the agent shall state that the information is unavailable rather than inventing a value.
+
+9. Grounded Response Requirements
+Every factual response involving organizational HR information shall be grounded in one or more authoritative sources.
+A grounded response may use:
+HR policy documents
+Employee records
+PTO data
+Benefits data
+HRIS records
+MCP tool results
+Approved organizational knowledge
+The system shall distinguish between facts retrieved from systems and AI interpretation.
+
+10. Citation Requirements
+CIT-001
+The system shall provide citations for material factual claims.
+CIT-002
+Citations shall identify the source of the information.
+Examples:
+Your current PTO balance is 96 hours.
+[Source: PTO System — EMP-1042 — retrieved 2026-09-19]
+or:
+Employees may carry over up to 40 hours of unused PTO.
+[Source: PTO Policy, Section 4.2, Version 3.1]
+CIT-003
+When a response combines multiple sources, the system shall cite each relevant source.
+Example:
+You currently have 96 hours of vacation available [PTO System]. The applicable policy permits a maximum carryover of 40 hours [PTO Policy §4.2].
+CIT-004
+Citations shall be traceable to the underlying source or tool result.
+CIT-005
+The agent shall not generate citations to sources it did not actually access.
+
+11. Grounding Pipeline
+The response-generation process shall follow:
+User Request
+     ↓
+Intent Analysis
+     ↓
+Task Planning
+     ↓
+Tool Selection
+     ↓
+MCP Calls
+     ↓
+Structured Results
+     ↓
+Policy Retrieval
+     ↓
+Result Validation
+     ↓
+Grounding Check
+     ↓
+Citation Construction
+     ↓
+Response Generation
+     ↓
+Final Grounding Validation
+     ↓
+User Response
+The system should perform a final validation before presenting a response.
+
+12. Grounding Validation
+Before returning a response, the system should determine:
+What factual claims are being made?
+Which source supports each claim?
+Whether the source is authoritative.
+Whether the information is current.
+Whether the claim accurately represents the source.
+Whether any unsupported assumptions remain.
+Unsupported factual claims should be removed, qualified, or explicitly identified as uncertain.
+
+13. Example Agent Execution
+User Request
+"How much PTO do I have, and can I take two weeks off in December?"
+Agent Plan
+Task 1: Identify employee
+Task 2: Retrieve PTO balance
+Task 3: Retrieve PTO policy
+Task 4: Determine applicable employee eligibility
+Task 5: Calculate requested PTO hours
+Task 6: Compare requested hours with available balance
+Task 7: Explain result
+Tool Calls
+Employee MCP
+    ↓
+get_employee("EMP-1042")
+
+PTO MCP
+    ↓
+get_pto_balance("EMP-1042")
+
+Policy MCP
+    ↓
+search_policy("PTO vacation December carryover employee California")
+Retrieved Information
+Employee:
+Full-Time
+California
+Active
+
+PTO:
+96 hours available
+
+Policy:
+8-hour workday
+Vacation requests require manager approval
+Agent Calculation
+Two weeks:
+10 working days × 8 hours = 80 hours
+Available:
+96 hours
+Remaining after requested time:
+96 - 80 = 16 hours
+Grounded Response
+You currently have 96 hours of vacation available.
+
+Two standard workweeks would require approximately
+80 hours (10 workdays × 8 hours), leaving approximately
+16 hours of PTO.
+
+Your PTO policy requires manager approval for vacation
+requests.
+
+Sources:
+• PTO balance: PTO MCP Server, EMP-1042
+• Work schedule/PTO rules: PTO Policy, Version 3.1
+The calculation is derived from retrieved data rather than invented employee information.
+
+14. Multi-Agent Capability
+The architecture should support multiple specialized agents where beneficial.
+Potential agents:
+                ┌─────────────────┐
+                │ Orchestrator    │
+                └────────┬────────┘
+                         │
+       ┌─────────────────┼───────────────────┐
+       ▼                 ▼                   ▼
+ Policy Agent       Employee Agent       Workflow Agent
+       │                 │                   │
+       ▼                 ▼                   ▼
+ Policy MCP          Employee MCP        HR Workflow MCP
+       │                 │                   │
+       └─────────────────┼───────────────────┘
+                         ▼
+                  Grounding Agent
+                         │
+                         ▼
+                  Response Agent
+The system should not require multiple agents when a single agent can safely complete the task.
+
+15. Agent State
+The agent shall maintain structured state during a workflow.
+Example:
+{
+  "request_id": "REQ-9001",
+  "user_id": "EMP-1042",
+  "intent": "pto_inquiry",
+  "tasks": [
+    {
+      "task": "retrieve_employee",
+      "status": "complete"
+    },
+    {
+      "task": "retrieve_pto_balance",
+      "status": "complete"
+    },
+    {
+      "task": "retrieve_policy",
+      "status": "complete"
+    }
+  ],
+  "sources": [
+    "employee_mcp",
+    "pto_mcp",
+    "policy_mcp"
+  ],
+  "requires_approval": false
+}
+
+16. Tool Risk Classification
+Every tool shall have a risk classification.
+Risk
+Example
+Automation
+Low
+Read policy
+Automatic
+Low
+Read PTO balance
+Automatic
+Medium
+Create HR case
+Configurable
+Medium
+Submit PTO request
+Configurable
+High
+Change compensation
+Human approval
+High
+Terminate employment
+Human approval
+Critical
+Delete employee records
+Restricted
+
+The risk classification shall be configurable by the organization.
+
+17. Read vs. Write Operations
+The agent shall clearly distinguish:
+Read Operations
+get_employee()
+get_pto_balance()
+get_policy()
+get_benefits()
+Write Operations
+create_pto_request()
+update_employee()
+create_case()
+change_benefits()
+Write operations shall be subject to additional authorization and, where configured, human approval.
+
+18. Agent Safety Requirements
+The agent shall:
+Never fabricate tool results.
+Never fabricate citations.
+Never claim an MCP action succeeded when it failed.
+Never bypass authorization.
+Never expose unauthorized employee information.
+Never treat retrieved data as authoritative if the source is marked unreliable.
+Never execute a write operation solely because the language model believes it is appropriate.
+Never silently resolve conflicting authoritative data.
+
+19. Evaluation Requirements
+The agentic layer shall be evaluated using predefined scenarios.
+Planning Tests
+Test whether the agent identifies all required steps.
+Tool Selection Tests
+Test whether the correct MCP server and tool are selected.
+Data Retrieval Tests
+Test whether correct employee and HR records are retrieved.
+Multi-Tool Tests
+Test whether the agent can combine results from multiple MCP servers.
+Grounding Tests
+Test whether claims are supported by retrieved data.
+Citation Tests
+Test whether citations accurately identify the sources used.
+Authorization Tests
+Test whether unauthorized operations are blocked.
+Failure Tests
+Test behavior when:
+MCP server is unavailable
+Tool returns malformed data
+Employee does not exist
+PTO balance is unavailable
+Policies conflict
+User lacks authorization
+Adversarial Tests
+The system should also be tested against attempts to:
+Bypass authorization
+Request another employee's data
+Manipulate tool parameters
+Inject instructions through retrieved documents
+Cause the agent to ignore policy
+Cause the agent to fabricate information
+
+20. Minimum Demonstration Scenario
+The MVP demonstration shall demonstrate an end-to-end request involving at least three information sources.
+Example
+User:
+"Can I take two weeks off in December, and what will my PTO balance be afterward?"
+The system shall:
+Identify the employee.
+Call the Employee MCP server.
+Call the PTO MCP server.
+Call the Policy MCP server.
+Determine the number of hours requested.
+Compare requested hours with the actual PTO balance.
+Explain applicable policy requirements.
+Produce citations for retrieved information.
+Clearly identify calculated values.
+Ask for confirmation before submitting a PTO request if the workflow is configured to require confirmation.
+Submit the request through the appropriate MCP tool if authorized and confirmed.
+Report the actual result returned by the MCP server.
+
+21. Agentic Acceptance Criteria
+The agentic layer shall not be considered complete until it can demonstrate all of the following:
+Planning
+Understand a natural-language HR request.
+Decompose complex requests into tasks.
+Dynamically modify a plan based on tool results.
+Tool Selection
+Discover available tools.
+Select the appropriate MCP server.
+Select appropriate MCP tools.
+Avoid unnecessary tool calls.
+Distinguish read and write operations.
+MCP
+Connect to multiple MCP servers.
+Validate tool inputs.
+Validate tool outputs.
+Handle tool failures.
+Log MCP calls.
+Structured Data
+Retrieve mock employee records.
+Retrieve mock PTO balances.
+Retrieve mock benefits data.
+Combine data from multiple sources.
+Never fabricate missing records.
+Grounding
+Ground responses in retrieved data.
+Ground policy responses in authoritative policies.
+Identify unsupported information.
+Handle conflicting information safely.
+Citations
+Cite policy sources.
+Cite structured-data sources.
+Support multi-source citations.
+Never generate a citation for a source that was not accessed.
+Make citations traceable to underlying evidence.
+Safety
+Enforce user authorization.
+Prevent unauthorized data access.
+Require approval for configured high-risk operations.
+Prevent unauthorized write operations.
+Maintain an audit trail.
+
+22. Definition of Done
+The Agentic AI Layer will be considered production-ready for an approved workflow when:
+The workflow has an explicit business definition.
+Required MCP tools are defined.
+Tool permissions are configured.
+The agent can plan the workflow.
+The agent can select appropriate tools.
+MCP calls are validated.
+Results are grounded.
+Responses contain traceable citations.
+Failure conditions have been tested.
+Authorization has been tested.
+Human approval requirements have been implemented.
+Audit logging has been verified.
+Security testing has been completed.
+Evaluation scenarios meet defined accuracy and safety thresholds.
+HR/business owners have approved the workflow for deployment.
+
+23. Architectural Principle
+The system should follow the principle:
+Plan → Retrieve → Validate → Act → Verify → Cite
+The language model should not be treated as the authoritative source of HR facts.
+Instead:
+The model plans.
+MCP tools retrieve and act.
+Authoritative systems provide facts.
+Policies provide organizational rules.
+The grounding layer connects claims to evidence.
+Human approval controls consequential actions.
+This separation allows the system to demonstrate genuine agentic behavior while keeping HR information, operational actions, and organizational policy under appropriate system and human control.

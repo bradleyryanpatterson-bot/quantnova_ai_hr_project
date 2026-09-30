@@ -1,0 +1,70 @@
+Software Requirements Specifications:
+Project: Employee HR Agentic AI App with RAG
+20 September 2026
+
+This document explains what the HR assistant app must do and how its work will be checked. The company policy documents will be provided separately. 
+1 Introduction
+1.1 Purpose
+The app will help employees find HR policy answers and work through common HR tasks. It will use policy documents for answers and MCP tools for sample employee data and workflow steps.
+1.2 Scope
+The app needs a chat page and API, a policy search index in PostgreSQL, a LangChain-based AI agent, an MCP server, and sample HR records. It must answer with sources, handle at least two multi-step tasks, run locally, and be available online. 
+2 Overall Description
+2.1 How the App Works
+An employee asks a question in the web app. A LangChain-based agent searches policy documents and calls MCP tools when it needs employees or benefit data. Tavily and DuckDuckGo can help with general web information, but company policy answers must rely on the supplied HR documents. The agent uses openai/gpt-oss-120b to produce an answer with sources and a short list of tools used.
+2.2 Users and Limits
+Employees ask questions and get task guidance. HR reviewers check the source documents and answers. Developers and graders run tests and demos.
+All employee profiles, PTO balances, and benefits records in the demo are synthetic.
+The app uses approved policy documents only. Missing or unclear policy evidence must lead to a clear limitation or an HR referral.
+The app must work within a free-tier hosting plan and must not require a paid database.
+3 Specific Requirements
+3.1 Functional Requirements
+Policy Documents and Answers
+FR-1 Read and clean at least two policy file types when available, such as PDF, Markdown, HTML, or TXT.
+FR-2 Split documents into useful chunks, create embeddings with a free or local embedding model, and save them in PostgreSQL with pgvector.
+FR-3 Save each chunk’s document title or ID, section or page, version when available, and a short source snippet.
+FR-4 Support repeatable indexing and replace old chunks when a policy document changes.
+FR-5 Search the index with a configurable top-k setting and pass the found text and source details to the answer model.
+FR-6 Cite the policy source for each important company rule in an answer. Show snippets when they help users check the answer.
+FR-7 Say when the policy evidence is missing, unclear, or conflicting. Do not make up policy rules or present general advice as company policy.
+FR-8 Support at least one question that needs information from two or more policy documents.
+Agent and HR Tasks
+FR-9 Use Lang Chain to build the agent workflow. The agent must decide whether a question needs policy search, employee data, web search, another tool, or a clarification question.
+FR-10 Support PTO guidance: look up sample employee and PTO balance, find the right policy, and explain the next steps. Do not submit a real request.
+FR-11 Support benefits guidance: look up sample employee and benefits status, find the right policy, and explain the next steps. Do not change coverage.
+FR-12 If the supplied policy documents do not cover either task, mark that task incomplete until the needed policy is added.
+FR-13 Ask for a missing employee ID or other key details before continuing a task. Handle unclear requests and tool failures with a useful message.
+FR-14 Show or log a short trace with tool names, safe argument summaries, results, policy sources, and any HR referral. Do not show hidden model reasoning.
+FR-15 Any ticket, email, or record change must be a clearly labeled mock action or require the user’s explicit confirmation. The baseline app must not make real HR changes.
+MCP Tools
+FR-16 Provide an MCP server with at least five tools. It must include policy search, policy section lookup, employee profile lookup, PTO balance check, and benefits status lookup, or clear equivalents. Provide Tavily and DuckDuckGo search through MCP tools when web search is needed.
+FR-17 The agent must discover and call these tools through an MCP client during real requests. Direct function calls alone do not meet this requirement.
+FR-18 Document the MCP transport, tool inputs and outputs, errors, and how the app connects locally and online.
+Web App and Delivery
+FR-19 Provide a chat page that shows answers, citations, snippets, clarification requests, mock-action labels, and a short tool trace.
+FR-20 Provide a /chat endpoint, or equivalent, that accepts a question and optional sample employee ID and returns answer, citations, snippets, trace, and status as JSON.
+FR-21 Provide a /health endpoint, or equivalent, that returns app status and, when possible, MCP and index status as JSON.
+FR-22 Create a virtual environment using venv, conda, or an equivalent tool. List dependencies on requirements.txt, pyproject. toml, or an equivalent file.
+FR-23 Provide a README with virtual environment setup, PostgreSQL and pgvector setup, local run, deployment, demo, and evaluation steps. Read secrets from environment variables and keep them out of the repository.
+FR-24 Deploy the completed app to a free-tier host such as Render, Railway, or an equivalent platform. Provide a shareable URL and explain any cold-start delay.
+Chosen Technology
+FR-29 Use Tavily as the main web search service and DuckDuckGo as a fallback. Label web results as outside information; do not cite them as company policy.
+FR-30 Use openai/gpt-oss-120b for agent decisions and answer generation. Configure its provider endpoint, model ID, and API key through environment variables, and record the model ID in evaluation results.
+FR-31 Use PostgreSQL for policy metadata, embeddings through pgvector, and synthetic employee, PTO, and benefits data. Keep database setup and migrations repeatable.
+3.2 Nonfunctional Requirements
+NFR-1 Use synthetic data in the public demo. Keep secrets and unnecessary personal details out of logs and traces.
+NFR-2 Check user and tool inputs. Treat policy files and tool outputs as data, not instructions to the agent.
+NFR-3 If the model, database, Tavily, DuckDuckGo, or another MCP tool is unavailable, show an error or limitation instead of an unsupported answer.
+NFR-4 Keep source details and index versions so reviewers can check where an answer comes from.
+NFR-5 Make the chat usable on current desktop and mobile browsers, with readable citations and clear status messages.
+NFR-6 Keep ingestion, search, MCP tools, agent, web app, and evaluation code in separate, documented parts.
+NFR-7 Use fixed seeds where helpful and record model, index, and evaluation settings so results can be repeated.
+NFR-8 Aim for warm p95 chat time of 15 seconds or less on the evaluation set.
+3.3 External Interfaces
+Web interface: responsive chat page with answer, citations, snippets, and trace.
+API: /chat for requests and /health for service status.
+MCP: documented stdio or HTTP transport for tool discovery and calls, including Tavily and DuckDuckGo web search tools.
+Storage: PostgreSQL with pgvector for policy embeddings, metadata, and synthetic HR records.
+Agent and model: LangChain orchestration with openai/gpt-oss-120b; provider endpoint and credentials come from environment variables.
+4 Deployment Requirements
+The completed application must be deployed to a free-tier host such as Render, Railway, or an equivalent platform. The app must also run locally in a virtual environment. Use a free-tier PostgreSQL service with pgvector or a documented equivalent PostgreSQL setup. The web app, LangChain agent, and MCP server may run together. A separate MCP service is optional. Deployment must happen only after CI tests pass.
+
