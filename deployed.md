@@ -1,10 +1,10 @@
 # Deployment Record - QuantNova AI HR Assistant
 
 ## Public URL
-To be added after deployment.
+https://quantnova-ai-hr-project.onrender.com/
 
 ## Health URL
-`<PUBLIC_BASE_URL>/health`
+`https://quantnova-ai-hr-project.onrender.com/health`
 
 ## Deployment checklist
 - CI tests pass before deployment.
